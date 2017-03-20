@@ -10,9 +10,6 @@ import Data.Text as T
 import GHC.Generics
 import Control.Monad (forM_)
 
-myToken :: BC.ByteString
-myToken = "vKRyTdzKHyLrhccpSOUJoaXkKieaoBuc"
-
 noaaHost :: BC.ByteString
 noaaHost = "www.ncdc.noaa.gov"
 
@@ -27,8 +24,8 @@ buildRequest token host method path = setRequestMethod method
                   $ setRequestSecure True 
                   $ setRequestPort 443
                   $ defaultRequest
-request :: Request 
-request = buildRequest myToken noaaHost "GET" apiPath                 
+request :: BC.ByteString -> Request 
+request myToken = buildRequest myToken noaaHost "GET" apiPath                 
  
 data ResultSet = ResultSet { offset :: Int, count :: Int, limit :: Int } deriving (Show, Generic)
 instance FromJSON ResultSet
@@ -56,8 +53,11 @@ printNooaResuls (Just results) = do
 
 main :: IO ()
 main = do
+  print "Please input token:"
+  -- ask token
+  token <- BC.getLine 
   -- get response
-  response <- httpLBS request
+  response <- httpLBS $ request token
   -- check status code
   let status = getResponseStatusCode response
   if status == 200
